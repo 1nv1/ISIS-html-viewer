@@ -1,0 +1,46 @@
+#!/usr/bin/lua
+
+function readAll(file)
+  local f = io.open(file, "rb")
+  local content = f:read("*all")
+  f:close()
+	return content
+end
+
+function writeAll(file, content)
+	local f = io.open(file, "w")
+	f:write(content)
+	f:close()
+end
+
+bom = {
+	path = "/home/nelson/.PlayOnLinux/wineprefix/electronics/drive_c/users/nelson/Temp/",
+	name = "",
+	html = "",
+	link = "",
+  newhtml = ""
+}
+
+local i, j, k
+i, j = string.find(arg[1], "bom")
+bom.name = string.sub(arg[1], i)
+os.execute("notify-send ".."Modifying:"..bom.name)
+-- Modifying html file:
+--bom.html = readAll(bom.path..bom.name)
+j = 4
+k = 2
+fp = io.open(bom.path..bom.name)
+for line in fp:lines() do
+	i, j = line:find("<TD VALIGN=\"BASELINE\" NOWRAP>http", j)
+	if(i ~= nil) then
+		k = line:find("</TD>", j)
+		bom.link = line:sub(j-3, k-1)  
+    -- Take old text and add hyperlinks
+    bom.newhtml = bom.newhtml.."<TD VALIGN=\"BASELINE\" NOWRAP><a href=\""..bom.link.."\" target=\"_blank\">link</a></TD>\n"
+	else
+    bom.newhtml = bom.newhtml..line.."\n"
+  end
+end
+writeAll(bom.path..bom.name, bom.newhtml)
+os.execute("notify-send ".."Ready!")
+os.execute("firefox "..bom.path..bom.name)
